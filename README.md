@@ -59,10 +59,10 @@ A concise tour of what you will find — and reproduce — in this repository:
 
 **Grade**: **94 / 100**
 
-| Part | Score | Lecturer’s feedback (abridged) |
+| Part | Score | Lecturer’s feedback |
 | ---- | ----- | ------------------------------ |
-| Part 1 | 13 / 14 | “Generally good implementation. Think more about proposal stds and target acceptance rate; comment on detailed balance for joint proposals.” |
-| Part 2 | 20 / 21 | “Sign error in model evidence; otherwise solid. Would like remarks on when the approach is appropriate (dimensionality, target distributions).” |
+| Part 1 | 13 / 14 | Generally good implementation. For short answer, a couple points. A minor one: I think that maybe it would be worth thinking a bit more about the proposal standard deviations and how to set them (what is a good target acceptance rate?). For part 2, this is an interesting idea but I think you would want to be careful to demonstrate that this still has the correct target distribution (e.g. making sure it still satisfies detailed balance). Was looking also for some comments on when this approach might be appropriate (e.g. what sorts of target distributions, dimensionality, etc). |
+| Part 2 | 20 / 21 | Sign error in model evidence implementation; otherwise good implementation and short answer. |
 
 ---
 
