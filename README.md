@@ -20,13 +20,10 @@ It includes:
 git clone https://github.com/BenoitCou/UCL-COMP0171-Bayesian-Deep-Learning-Coursework-1
 cd UCL-COMP0171-Bayesian-Deep-Learning-Coursework-1
 
-# 2. Create & activate a virtual environment  (optional but recommended)
-python -m venv .venv
-
-# 3. Install Python dependencies
+# 2. Install Python dependencies
 pip install -r requirements.txt
 
-# 4. Launch the notebooks
+# 3. Launch the notebooks
 jupyter notebook "(Part 1) Seven scientists.ipynb"
 jupyter notebook "(Part 2) Bayesian classifiers.ipynb"
 ```
