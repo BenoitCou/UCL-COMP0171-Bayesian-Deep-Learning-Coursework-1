@@ -6,7 +6,7 @@ It includes:
 
 | Path                                           | Description                                                                                                                                                                                                                            |
 | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `(Part 1) Seven scientists.ipynb`              | Jupyter notebook that builds a hierarchical Gaussian model for seven laboratory means, implements a blocked Metropolis-within-Gibbs sampler in PyTorch, and reports posterior diagnostics & summaries.                                |
+| `(Part 1) Seven scientists.ipynb`              | Jupyter notebook that builds a Gaussian model for seven laboratory means, implements an MCMC sampler in PyTorch, and reports posterior diagnostics & summaries.                                |
 | `(Part 2) Bayesian classifiers.ipynb`          | Jupyter notebook that trains Bayesian logistic regressors with linear/quadratic/cubic feature maps, applies the Laplace approximation, computes model evidence, and visualises predictive uncertainty.                               |
 | `data.pt`                                      | Torch tensor dataset used in Part 2.                                                                                                                                                                                                  |
 | `requirements.txt`                             | Python dependencies (PyTorch ≥ 2.1, numpy, matplotlib, jupyter, arviz, tqdm).                                                                                                                                                          |
@@ -34,21 +34,41 @@ A concise tour of what you will find — and reproduce — in this repository:
 
 **Part I – Seven scientists**
 
-- **Hierarchical Gaussian model** — modelled the seven laboratory means $$\theta_i$$ with a shared latent mean $$\mu$$ and precision $$\tau$$; placed conjugate priors $$ \mu \sim \mathcal N(\mu_0,\sigma_0^2)$$ and $$\tau \sim \text{Gamma}(\alpha,\beta)$$.  
-- **Blocked Metropolis-within-Gibbs sampler** — custom PyTorch implementation that jointly proposes $$(\mu,\tau)$$ and individually updates the $$\theta_i$$; proposal scales tuned to reach an acceptance rate ≈ 30 %.  
-- **Diagnostics** — trace-plots, running-mean diagnostics and effective‐sample-size estimates to check mixing; burn-in and thinning chosen accordingly.  
-- **Posterior summaries** — reported posterior means ± 95 % credible intervals for each scientist’s true mean and for the shared $$\mu$$; predicted the next measurement for Scientist 3.  
-- **Extra credit** — treated $$\alpha,\beta$$ as unknown, added a second Gibbs block and recovered their posterior (2 bonus marks).  
-- **Short answers** — discussed choice of proposal s.d.s and target acceptance rate; analysed why a fully joint proposal might violate detailed balance without extra care.  
+- **Heteroskedastic Gaussian model** — modelled each scientist’s measurement as  
+  $$x_i \sim \mathcal{N}(\mu, \sigma_i^2)$$  
+  with unknown true mean $$\mu$$ and individual noise levels $$\sigma_i$$. Priors used were  
+  $$\mu \sim \mathcal{N}(0, \alpha^2), \quad \sigma_i \sim \text{Exp}(\beta)$$  
+  with $$\alpha = 50$$ and $$\beta = 0.5$$.
+- **Custom MCMC sampler** — implemented Metropolis-Hastings in PyTorch to sample jointly from $$p(\mu, \sigma_1,\dots,\sigma_7 | x)$$ using Normal random-walk proposals. All 8 parameters were updated simultaneously in a single accept/reject step.  
+- **Diagnostics** — monitored trace plots and histograms for $$\mu$$ and $$\sigma_i$$; acceptance rate reported (≈ 7%) and burn-in appropriately discarded. Posterior boxplots helped visualize which scientists had higher uncertainty.
+- **Posterior summaries** — estimated $$\mathbb{E}[\mu] \approx 9.79$$ and computed posterior probability $$\Pr(\mu < 9) \approx 3.8\%$$ using post-burn-in MCMC samples.
+- **Alternate proposal strategy** — suggested a sequential update approach where $$\mu$$ and each $$\sigma_i$$ can be proposed and accepted independently, potentially improving acceptance rate and convergence speed. Prototype `mcmc_step_improved` function included.
+- **Short answers** — discussed benefits of symmetric Normal proposals for local exploration and detailed the tradeoffs between joint vs. coordinate-wise proposals in MCMC, including a practical implementation of partial updates to avoid rejecting otherwise good partial proposals.
+
 
 **Part II – Bayesian linear classifiers**
 
-- **Feature spaces** — compared a *linear* feature map $$\phi_\text{lin}(x)=[1,x_1,x_2]$$ and a *quadratic* map adding $$x_1^2,x_2^2,x_1x_2$$.  
-- **MAP estimation** — maximised the log-posterior of Bayesian logistic regression with an $$ \mathcal N(0,\sigma_w^2I)$$ prior using LBFGS; verified gradient correctness with finite differences.  
-- **Laplace approximation** — computed the Hessian at the MAP, constructed a Gaussian approximation to $$p(\mathbf w\mid\mathcal D)$$, and visualised predictive mean ± std over a grid.  
-- **Model evidence** — used the Laplace log-evidence to compare linear vs quadratic models (sign error in one term, noted in feedback).  
-- **Custom features** — engineered a cubic/interaction map that achieved the highest evidence among all tested φ; plotted the corresponding decision boundary.  
-- **Short answers** — reflected on appropriateness of Laplace in high dimensions, on evidence-vs-dimensionality trade-offs, and on when richer φ pays off.  
+- **Bayesian logistic regression model** — modelled binary labels using a logistic link:
+  $$\mathbf{w} \sim \mathcal{N}(0, \sigma^2 I), \quad y_i \sim \text{Bernoulli}(\text{Logistic}(\mathbf{w}^\top \phi(\mathbf{x}_i)))$$  
+  with two feature choices:  
+  - Simple: $$\phi(\mathbf{x}) = [1, x_1, x_2]$$  
+  - Quadratic: $$\phi(\mathbf{x}) = [1, x_1, x_2, x_1x_2, x_1^2, x_2^2]$$  
+  Custom cubic features were also implemented.
+- **MAP estimation** — used PyTorch autograd and `Adagrad` optimizer to maximize the log joint distribution and recover the mode $$\mathbf{w}_{MAP}$$. Training curves tracked loss over iterations for convergence diagnostics.
+- **Laplace approximation** — estimated the posterior covariance as the inverse negative Hessian at $$\mathbf{w}_{MAP}$$; used this Gaussian approximation to compute predictive probabilities and marginal likelihood (model evidence).
+- **Posterior predictions** — implemented closed-form approximate predictions from the Bayesian posterior over $$\mathbf{w}$$ using the second-order approximation:
+  $$p(y = 1 | x) \approx \text{Logistic} \left( \frac{\mu_a}{\sqrt{1 + \frac{\pi}{8} \sigma_a^2}} \right)$$  
+  where $$\mu_a = \mathbf{w}_{MAP}^\top \phi(x), \; \sigma_a^2 = \phi(x)^\top \Sigma \phi(x)$$.
+- **Model comparison** — computed model evidence via Laplace approximation:
+  $$\log p(y | X) \approx \log p(y, \mathbf{w}_{MAP}) - \frac{1}{2} \log|\Sigma| + \frac{D}{2} \log(2\pi)$$  
+  Compared feature sets based on evidence and test accuracy to assess overfitting vs underfitting.
+- **Custom feature design** — engineered a feature set with polynomial terms up to degree 3:
+  $$\phi(x) = [1, x_1, x_2, x_1^2, x_2^2, x_1^3, x_2^3, x_1 x_2]$$  
+  Achieved test accuracy of 92% and better log-evidence than baseline models.
+
+- **Short answers** — discussed metrics for model comparison (accuracy vs evidence), how Laplace approximation mitigates overfitting through posterior uncertainty, and how feature engineering affects generalization.
+
+
 
 ---
 
