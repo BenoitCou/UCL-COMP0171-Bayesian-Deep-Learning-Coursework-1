@@ -67,8 +67,8 @@ A concise tour of what you will find — and reproduce — in this repository:
 
 ```kotlin
 UCL-COMP0171-Bayesian-Deep-Learning-CW1/
-├── (Part 1) Seven scientists.ipynb   # Hierarchical MCMC implementation & analysis
-├── (Part 2) Bayesian classifiers.ipynb  # Bayesian logistic regression, Laplace, evidence
-├── data.pt                            # Torch tensor dataset used in Part 2
-└── requirements.txt                   # Python dependencies (PyTorch ≥ 2.1, numpy, matplotlib)
+├── (Part 1) Seven scientists.ipynb       # Hierarchical MCMC implementation & analysis
+├── (Part 2) Bayesian classifiers.ipynb   # Bayesian logistic regression, Laplace, evidence
+├── data.pt                               # Torch tensor dataset used in Part 2
+└── requirements.txt                      # Python dependencies
 
