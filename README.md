@@ -56,9 +56,6 @@ A concise tour of what you will find — and reproduce — in this repository:
   Custom cubic features were also implemented.
 - **MAP estimation** — used PyTorch autograd and `Adagrad` optimizer to maximize the log joint distribution and recover the mode $$\mathbf{w}_{MAP}$$. Training curves tracked loss over iterations for convergence diagnostics.
 - **Laplace approximation** — estimated the posterior covariance as the inverse negative Hessian at $$\mathbf{w}_{MAP}$$; used this Gaussian approximation to compute predictive probabilities and marginal likelihood (model evidence).
-- **Posterior predictions** — implemented closed-form approximate predictions from the Bayesian posterior over $$\mathbf{w}$$ using the second-order approximation:
-  $$p(y = 1 | x) \approx \text{Logistic} \left( \frac{\mu_a}{\sqrt{1 + \frac{\pi}{8} \sigma_a^2}} \right)$$  
-  where $$\mu_a = \mathbf{w}_{MAP}^\top \phi(x), \; \sigma_a^2 = \phi(x)^\top \Sigma \phi(x)$$.
 - **Model comparison** — computed model evidence via Laplace approximation:
   $$\log p(y | X) \approx \log p(y, \mathbf{w}_{MAP}) - \frac{1}{2} \log|\Sigma| + \frac{D}{2} \log(2\pi)$$  
   Compared feature sets based on evidence and test accuracy to assess overfitting vs underfitting.
